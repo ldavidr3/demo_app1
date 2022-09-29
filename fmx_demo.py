@@ -16,7 +16,7 @@ url_reach = "https://assets5.lottiefiles.com/packages/lf20_vpxae5vy.json"
 url_reactions = "https://assets2.lottiefiles.com/packages/lf20_nKwET0.json"
 options = dict(loop=True, autoplay=True, rendererSettings=dict(preserveAspectRatio='xMidYMid slice'))
 
-df = pd.read_csv(r'C:\Users\ldavi\Documents\py\demo1\ata_1.txt', encoding='latin1', sep='\t', lineterminator='\n')
+df = pd.read_csv(r'/assets/ata_1.txt', encoding='latin1', sep='\t', lineterminator='\n')
 
 # Función para resumir col FUENTES DE DATOS
 def src(x):
@@ -43,6 +43,7 @@ df['Source'] = df['Source'].apply(src)
 
 # Bootstrap themes by Ann: https://hellodash.pythonanywhere.com/theme_explorer
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
+server = app.server
 
 app.layout = dbc.Container([
     dbc.Row([
@@ -277,4 +278,4 @@ def update_bar(src_chosen):
 
 
 if __name__=='__main__':
-    app.run_server(debug=False, port=8003)
+    app.run_server(debug=False)
