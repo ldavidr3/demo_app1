@@ -1,0 +1,7 @@
+{
+    "workbench.iconTheme": "ayu",
+    "workbench.colorTheme": "Dracula",
+    "workbench.settings.editor": "ui",
+    "python.formatting.provider": "black",
+    "workbench.settings.openDefaultSettings": true,
+}

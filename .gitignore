@@ -1,1 +1,4 @@
-p_venv/
+venv/
+*.pyc
+.env
+.DS_Store

@@ -16,7 +16,7 @@ url_reach = "https://assets5.lottiefiles.com/packages/lf20_vpxae5vy.json"
 url_reactions = "https://assets2.lottiefiles.com/packages/lf20_nKwET0.json"
 options = dict(loop=True, autoplay=True, rendererSettings=dict(preserveAspectRatio='xMidYMid slice'))
 
-df = pd.read_csv(r'/assets/ata_1.txt', encoding='latin1', sep='\t', lineterminator='\n')
+df = pd.read_csv(r'ata_1.txt', encoding='latin1', sep='\t', lineterminator='\n')
 
 # Función para resumir col FUENTES DE DATOS
 def src(x):
