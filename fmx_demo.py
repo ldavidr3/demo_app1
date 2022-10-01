@@ -73,11 +73,10 @@ app.layout = dbc.Container([
             ], color="info", inverse=True),
         ], xs=12, sm=12, md=12, lg=7, xl=7),
         dbc.Col([
-            dcc.Dropdown(id='dpdn2', value=['Facebook','Twitter'], multi=True,
+            dcc.Dropdown(id='dpdn2', value=['Facebook','Twitter','Blogs y notas'], multi=True,
                         options=[{'label': x, 'value': x} for x in df['Source'].unique()]),
-            dcc.Markdown(children='', id='text-desc', style={'color':'purple'}),
-            
 
+            dcc.Markdown(children='', id='text-desc', style={'color':'orange'})
         ], xs=12, sm=12, md=12, lg=5, xl=5
         ,  className='text-center fs-4 row align-items-center' 
            #xs=12, sm=12, md=12, lg=5, xl=5
@@ -88,7 +87,7 @@ app.layout = dbc.Container([
             dbc.Card([
                 dbc.CardHeader(Lottie(options=options, width="25%", height="25%", url=url_coonections)),
                 dbc.CardBody([
-                    html.H6('Total de Menciones'),
+                    html.H6('Menciones Totales'),
                     html.H2(id='content-connections', children="000")
                 ], style={'textAlign':'center'})
             ]),
@@ -97,7 +96,7 @@ app.layout = dbc.Container([
             dbc.Card([
                 dbc.CardHeader(Lottie(options=options, width="25%", height="25%", url=url_engage)),
                 dbc.CardBody([
-                    html.H6('Engagement Obtenido'),
+                    html.H6('Engagement'),
                     html.H2(id='content-companies', children="000")
                 ], style={'textAlign':'center'})
             ]),
@@ -125,15 +124,17 @@ app.layout = dbc.Container([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
+                    html.H6('Menciones por Hora'),
                     dcc.Graph(id='line-chart', figure={}, config={'displayModeBar': False}),
-                ])
+                ], style={'textAlign':'center'})
             ]),
         ], xs=12, sm=12, md=12, lg=7, xl=7),
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
+                    html.H6('Sentiment detectado'),
                     dcc.Graph(id='pie-chart', figure={}),
-                ])
+                ], style={'textAlign':'center'})
             ]),
         ], xs=12, sm=12, md=12, lg=5, xl=5),
     ],className='mb-2'),
@@ -141,34 +142,24 @@ app.layout = dbc.Container([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
+                    html.H6('Plataformas'),
                     dcc.Graph(id='bar-chart', figure={}),
-                ])
+                ], style={'textAlign':'center'})
             ]),
         ], xs=12, sm=12, md=12, lg=6, xl=6),
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
+                    html.H6('Términos más frecuentes'),
                     dcc.Graph(id='wordcloud', figure={}, 
                             config={
                                 'staticPlot': True,
                                 'displayModeBar': True,}),
-                ])
+                ], style={'textAlign':'center'})
             ]),
         ], xs=12, sm=12, md=12, lg=6, xl=6),
     ],className='mb-2'),
 ], fluid=True)
-
-
-# Updating Description
-@app.callback(
-    Output('text-desc','children'),
-    Input('dpdn2', component_property='value')
-)
-def update_markdown(src_chosen):
-    df_m = df.copy()
-    df_m = df_m[df_m['Source'].isin(src_chosen)]
-    return "Se detectaron {} menciones en el ámbito digital general el {}. \n".format(df_m.shape[0], df_m['Date'].dt.strftime('%d-%m')[0])
-    #return "Hay {} observaciones y {} columnas/variables/features en este DF. \n".format(df_m.shape[0],df_m.shape[1])
 
 
 # Updating the 5 number cards
@@ -191,6 +182,21 @@ def update_graph(src_chosen):
     
     return total_mentions, total_engagament, unique_users, total_reach
 
+# Updating Description
+@app.callback(
+    Output('text-desc','children'),
+    Input('dpdn2', component_property='value')
+)
+def update_markdown(src_chosen):
+    if len(src_chosen) == 0:
+        text = ""
+    else:
+        df_m = df.copy()
+        df_m = df_m[df_m['Source'].isin(src_chosen)]
+        text = "{} menciones detectadas el {}.".format(df_m.shape[0], df_m['Date'].dt.strftime('%d-%m').iloc[:1].values[0])
+    
+    return text
+
 
 # Line Chart ***********************************************************
 @app.callback(
@@ -202,8 +208,7 @@ def update_line(src_chosen):
     dff = dff[dff['Source'].isin(src_chosen)]
     dff2 = dff.groupby([dff['Date'].dt.strftime('%H')]).Date.count().to_frame().reset_index(names='Horas')
     dff2.columns = ['Horas','Total de Menciones']
-    fig_line = px.line(dff2, x='Horas', y='Total de Menciones', template='ggplot2',
-                  title="Menciones por Hora")
+    fig_line = px.line(dff2, x='Horas', y='Total de Menciones', template='ggplot2')
     fig_line.update_traces(mode="lines+markers", fill='tozeroy',line={'color':'rgba(246, 78, 139, 1.0)'})
     fig_line.update_layout(margin=dict(l=20, r=20, t=30, b=20))
     fig_line.update_yaxes(visible=False)
@@ -223,7 +228,7 @@ def update_pie(src_chosen):
     #print(df_p)
     df_p.columns = ['Sentiment','Total de Menciones']
     fig2 = px.pie(df_p, values='Total de Menciones', names='Sentiment', color='Sentiment',
-                    template='ggplot2', title='Sentiment Detectado',
+                    template='ggplot2', 
                     color_discrete_map={
                                     "Positive": "limegreen",
                                     "Negative": "orangered",
@@ -250,8 +255,7 @@ def update_cloud(src_chosen):
         repeat=True,
         height=275
     ).generate(' '.join(df_w['Key Phrases']))
-    fig_wordcloud = px.imshow(my_wordcloud, template='ggplot2',
-                              title="Términos Más Frecuentes")
+    fig_wordcloud = px.imshow(my_wordcloud, template='ggplot2')
     fig_wordcloud.update_layout(margin=dict(l=20, r=20, t=30, b=20))
     fig_wordcloud.update_xaxes(visible=False)
     fig_wordcloud.update_yaxes(visible=False)
@@ -275,16 +279,16 @@ def update_bar(src_chosen):
         y=ordered_df['URL'],
         x=ordered_df['Source'],
         text=ordered_df['URL'],
-        textposition="inside",
+        textposition="auto",
         marker=dict(
             color='rgba(246, 78, 139, 0.6)',
             line=dict(color='rgba(246, 78, 139, 1.0)', width=3)
         )
     ))
-    fig_bar.update_layout(title='Plataformas', barmode="overlay", showlegend=False, template="presentation",margin=dict(l=10, r=10, t=40, b=20))
+    fig_bar.update_layout(barmode="overlay", showlegend=False, template="presentation",margin=dict(l=10, r=10, t=40, b=20))
     fig_bar.update_yaxes(visible=False)
     return fig_bar
 
 
 if __name__=='__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)

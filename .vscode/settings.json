@@ -4,4 +4,9 @@
     "workbench.settings.editor": "ui",
     "python.formatting.provider": "black",
     "workbench.settings.openDefaultSettings": true,
+    "code-runner.executorMap": {
+        "python": "$pythonPath -u $fullFileName"
+    },
+    "code-runner.showExecutionMessage": false,
+    "terminal.integrated.shell.windows": "C:\\Program Files\\Git\\bin\\bash.exe"
 }
