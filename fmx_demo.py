@@ -42,7 +42,11 @@ df['Source'] = df['Source'].apply(src)
 
 
 # Bootstrap themes by Ann: https://hellodash.pythonanywhere.com/theme_explorer
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
+app = dash.Dash(__name__, 
+                external_stylesheets=[dbc.themes.LUX],
+                meta_tags=[{'name': 'viewport',
+                            'content': 'width=device-width, initial-scale=1.0, maximum-scale=1.2, minimum-scale=0.5,'}]
+                )
 server = app.server
 
 app.layout = dbc.Container([
@@ -57,9 +61,8 @@ app.layout = dbc.Container([
                 dbc.CardBody([
                     html.H4("Escucha Digital", className="card-title"),
                     html.P(
-                        "Se presenta un análisis sobre las focos de conversación en medios digitales "
-                        "en medios digitales sobre el Presidente Pedro Rodríguez Villegas " 
-                        "y el Gobierno Municipal de Atizapán de Zaragoza ",
+                        "Se presenta un análisis sobre las focos de conversación en medios digitales sobre el Presidente Pedro Rodríguez Villegas y el Gobierno Municipal de Atizapán de Zaragoza "                       
+                        ,
                         className="card-text text-wrap",
                     ),                    
                     
@@ -68,14 +71,14 @@ app.layout = dbc.Container([
                     )
                 ])
             ], color="info", inverse=True),
-        ], width=8),
+        ], xs=12, sm=12, md=12, lg=7, xl=7),
         dbc.Col([
             dcc.Dropdown(id='dpdn2', value=['Facebook','Twitter'], multi=True,
                         options=[{'label': x, 'value': x} for x in df['Source'].unique()]),
             dcc.Markdown(children='', id='text-desc', style={'color':'purple'}),
             
 
-        ], width={'size':4, 'offset':0, 'order':2}
+        ], xs=12, sm=12, md=12, lg=5, xl=5
         ,  className='text-center fs-4 row align-items-center' 
            #xs=12, sm=12, md=12, lg=5, xl=5
         ),
@@ -89,7 +92,7 @@ app.layout = dbc.Container([
                     html.H2(id='content-connections', children="000")
                 ], style={'textAlign':'center'})
             ]),
-        ], width=3),
+        ], xs=6, sm=6, md=3, lg=3, xl=3),
         dbc.Col([
             dbc.Card([
                 dbc.CardHeader(Lottie(options=options, width="25%", height="25%", url=url_engage)),
@@ -98,7 +101,7 @@ app.layout = dbc.Container([
                     html.H2(id='content-companies', children="000")
                 ], style={'textAlign':'center'})
             ]),
-        ], width=3),
+        ], xs=6, sm=6, md=3, lg=3, xl=3),
         dbc.Col([
             dbc.Card([
                 dbc.CardHeader(Lottie(options=options, width="25%", height="25%", url=url_prfl)),
@@ -107,7 +110,7 @@ app.layout = dbc.Container([
                     html.H2(id='content-msg-in', children="000")
                 ], style={'textAlign':'center'})
             ]),
-        ], width=3),
+        ], xs=6, sm=6, md=3, lg=3, xl=3),
         dbc.Col([
             dbc.Card([
                 dbc.CardHeader(Lottie(options=options, width="25%", height="25%", url=url_reach)),
@@ -116,7 +119,7 @@ app.layout = dbc.Container([
                     html.H2(id='content-msg-out', children="000")
                 ], style={'textAlign': 'center'})
             ]),
-        ], width=3)
+        ], xs=6, sm=6, md=3, lg=3, xl=3)
     ],className='mb-2'),
     dbc.Row([
         dbc.Col([
@@ -125,14 +128,14 @@ app.layout = dbc.Container([
                     dcc.Graph(id='line-chart', figure={}, config={'displayModeBar': False}),
                 ])
             ]),
-        ], width=7),
+        ], xs=12, sm=12, md=12, lg=7, xl=7),
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
                     dcc.Graph(id='pie-chart', figure={}),
                 ])
             ]),
-        ], width=5),
+        ], xs=12, sm=12, md=12, lg=5, xl=5),
     ],className='mb-2'),
     dbc.Row([
         dbc.Col([
@@ -141,14 +144,17 @@ app.layout = dbc.Container([
                     dcc.Graph(id='bar-chart', figure={}),
                 ])
             ]),
-        ], width=6),
+        ], xs=12, sm=12, md=12, lg=6, xl=6),
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    dcc.Graph(id='wordcloud', figure={}),
+                    dcc.Graph(id='wordcloud', figure={}, 
+                            config={
+                                'staticPlot': True,
+                                'displayModeBar': True,}),
                 ])
             ]),
-        ], width=6),
+        ], xs=12, sm=12, md=12, lg=6, xl=6),
     ],className='mb-2'),
 ], fluid=True)
 
@@ -177,10 +183,11 @@ def update_graph(src_chosen):
     dff = df.copy()
     dff = dff[dff['Source'].isin(src_chosen)]
     total_mentions = dff.shape[0]
-    total_engagament = dff['Engagement'].sum()
+    engagament = dff['Engagement'].sum()
+    total_engagament= f'{engagament:,}'  
     unique_users = len(dff["User Profile Url"].unique())
-    value = dff['Reach'].sum()    
-    total_reach = f'{value:,}'  
+    reach = dff['Reach'].sum()    
+    total_reach = f'{reach:,}'  
     
     return total_mentions, total_engagament, unique_users, total_reach
 
@@ -193,12 +200,14 @@ def update_graph(src_chosen):
 def update_line(src_chosen):
     dff = df.copy() 
     dff = dff[dff['Source'].isin(src_chosen)]
-    dff2 = dff.groupby([dff['Date'].dt.strftime('%H')]).Date.count()
-    fig_line = px.line(dff2, y='Date', template='ggplot2',
+    dff2 = dff.groupby([dff['Date'].dt.strftime('%H')]).Date.count().to_frame().reset_index(names='Horas')
+    dff2.columns = ['Horas','Total de Menciones']
+    fig_line = px.line(dff2, x='Horas', y='Total de Menciones', template='ggplot2',
                   title="Menciones por Hora")
-    fig_line.update_traces(mode="lines+markers", fill='tozeroy',line={'color':'mediumpurple'})
+    fig_line.update_traces(mode="lines+markers", fill='tozeroy',line={'color':'rgba(246, 78, 139, 1.0)'})
     fig_line.update_layout(margin=dict(l=20, r=20, t=30, b=20))
-
+    fig_line.update_yaxes(visible=False)
+    fig_line.update_xaxes(tickangle = 45, title_text = "")    
     return fig_line
 
 
@@ -210,10 +219,10 @@ def update_line(src_chosen):
 def update_pie(src_chosen):
     df_p = df.copy() 
     df_p = df_p[df_p['Source'].isin(src_chosen)]
-    df_p = pd.DataFrame(df_p.Sentiment.value_counts())
-    df_p.reset_index(inplace=True)
+    df_p = df_p.Sentiment.value_counts().to_frame().reset_index(names='S')
     #print(df_p)
-    fig2 = px.pie(df_p, values='Sentiment', names='index', color='index',
+    df_p.columns = ['Sentiment','Total de Menciones']
+    fig2 = px.pie(df_p, values='Total de Menciones', names='Sentiment', color='Sentiment',
                     template='ggplot2', title='Sentiment Detectado',
                     color_discrete_map={
                                     "Positive": "limegreen",

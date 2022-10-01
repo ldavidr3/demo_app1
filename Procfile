@@ -1,1 +1,1 @@
-web: gunircorn fmx_demo:server
+web: gunicorn fmx_demo:server
